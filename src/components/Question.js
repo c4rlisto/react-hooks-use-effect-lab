@@ -1,31 +1,45 @@
-import React, { useState } from "react";
+// src/components/Question.jsx
+import React, { useState, useEffect } from "react";
 
 function Question({ question, onAnswered }) {
-  const [timeRemaining, setTimeRemaining] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(10); // 10-second timer
 
-  // add useEffect code
+  useEffect(() => {
+    // Countdown every second
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
 
-  function handleAnswer(isCorrect) {
-    setTimeRemaining(10);
-    onAnswered(isCorrect);
+    // Auto-answer after 10 seconds
+    const timeout = setTimeout(() => {
+      onAnswered(false); // time ran out, answer is incorrect
+    }, 10000);
+
+    // Cleanup timers on unmount
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [onAnswered]);
+
+  // Handle user's answer selection
+  function handleAnswer(index) {
+    const correct = index === question.correctIndex;
+    onAnswered(correct);
   }
 
-  const { id, prompt, answers, correctIndex } = question;
-
   return (
-    <>
-      <h1>Question {id}</h1>
-      <h3>{prompt}</h3>
-      {answers.map((answer, index) => {
-        const isCorrect = index === correctIndex;
-        return (
-          <button key={answer} onClick={() => handleAnswer(isCorrect)}>
+    <div>
+      <h2>{question.prompt}</h2>
+      <p>{timeLeft} seconds remaining</p>
+      <div>
+        {question.answers.map((answer, index) => (
+          <button key={index} onClick={() => handleAnswer(index)}>
             {answer}
           </button>
-        );
-      })}
-      <h5>{timeRemaining} seconds remaining</h5>
-    </>
+        ))}
+      </div>
+    </div>
   );
 }
 
